@@ -5,6 +5,8 @@ de recherche en largeur, et de chemin le plus court de dijkstra.
 Ce projet a pour seul et unique but l'apprentissage du PHP, n'a pas vocation à être ni performant, ni
 efficace.
 
+NON FONCTIONNEL pour le moment. 
+
 # Prérequis
 
 * PHP >= 7
