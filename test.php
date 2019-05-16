@@ -1,6 +1,7 @@
 <?PHP
 
-ini_set("memory_limit", "-1");
+// BAD IDEA, should rather find a way to use way less ram.
+ini_set("memory_limit", "2048M");
 
 // Some global variable to clarify code.
 define("NONE", 0);
@@ -17,39 +18,6 @@ class TicTacToe{
      */
     public function __construct(){
         $this->board_ = array(array(NONE,NONE,NONE), array(NONE,NONE,NONE), array(NONE,NONE,NONE));
-    }
-
-    /**
-     * Generate all the possible valid combination of a tic tac toe game.
-     * Be careful, might remain some case I haven't thought of that are not "invalid", but
-     * you'll never see in a real game.
-     * @return array The array of all TicTacToe combinations. 
-     */
-    public function generateAll(): array{
-        $possibility = array(NONE, CROSS, CIRCLE);
-
-        $line_combinations = array();
-
-        foreach($possibility as $i){
-            foreach($possibility as $j){
-                foreach($possibility as $k){
-                    array_push($line_combinations, array($i, $j, $k));
-                }
-            }
-        }
-
-        $combinations = array();
-        foreach($line_combinations as $i){
-            foreach($line_combinations as $j){
-                foreach($line_combinations as $k){
-                    $temporary_ttt = new TicTacToe(array($i, $j, $k));
-                    if ($temporary_ttt->isValid()){
-                        array_push($combinations, $temporary_ttt);
-                    }
-                }
-            }
-        }
-        return $combinations;
     }
 
     /**
@@ -183,7 +151,8 @@ class TicTacToe{
             $next_player = $this->nextPlayer();
             $index = 0;
             for($i = 0; $i < $nb_empty; ++$i){
-                $nextTicTacToe = new TicTacToe($this->board_);
+                $nextTicTacToe = new TicTacToe();
+                $nextTicTacToe->fromId($this->id());
                 while (($nextTicTacToe->at($index) != NONE)){
                     ++$index;
                 }
@@ -403,31 +372,28 @@ class OrientedGraph extends Graph{
 }
 
 /**
- * Generate recursively the graph of all moves.
+ * Generate the graph of all moves.
  * @param TicTacToe The starting tic tac toe board.
  * @param Graph $g The graph in which we put the edges.
  * @return array The correspondance array between tic tac toe ID and vertices values. 
  */
 function movesGraph($tictactoe, $g): array{
-    function rec_ttt($g, $c, $t){
-        if (!$t->ended()){
-            $next = $t->nextIteration();
-            foreach($next as $tt){
-                if (!$c[$tt->id()]){
-                    if (count($c) == 0){
-                        $c[$tt->id()] = 0;
-                    }else{
-                        $c[$tt->id()] = end($c) + 1;
-                    }
-                }
-                $id = $c[$t->id()];
-                $g->addEdge($id, $c[$tt->id()]);
-                $c = rec_ttt($g, $c, $tt);
+    $c = array($tictactoe->id() => 0);
+    $pile = array($tictactoe);
+    $current = null;
+    while (count($pile) > 0){
+        $current = array_pop($pile);
+        $next = $current->nextIteration();
+        foreach($next as $ttt_move){
+            $move = $ttt_move->id();
+            if (!$c[$move]){
+                $c[$move] = end($c) +1;
+                array_push($pile, $ttt_move);
             }
+            $g->addEdge($c[$current->id()], $c[$move]);
         }
-        return $c;
     }
-    return rec_ttt($g, array($tictactoe->id() => 0), $tictactoe);
+    return $c;
 }
 
 /**
@@ -466,6 +432,7 @@ function play(){
     $tictactoe = new TicTacToe();
     $g = new OrientedGraph(6100);
     $result = movesGraph($tictactoe, $g);
+    print_r(count($result));
     $t = new TicTacToe();
     $t->randomMove();
 
