@@ -237,6 +237,13 @@ class TicTacToe{
         $index = $this->index($this->randomEmpty());
         $this->play($index[0], $index[1]);
     }
+
+    /**
+     * Function that reset the board.
+     */
+    public function reset(): void{
+        $this->board_ = array(array(NONE,NONE,NONE), array(NONE,NONE,NONE), array(NONE,NONE,NONE));
+    }
 }
 
 /**
@@ -429,32 +436,47 @@ function getMove(string $id_before, string $id_after): array{
  * Play a tic tac toe game using graphs, dijkstra shortest path and BFS.
  */
 function play(){
-    $tictactoe = new TicTacToe();
-    $g = new OrientedGraph(6100);
-    $result = movesGraph($tictactoe, $g);
-    print_r(count($result));
-    $t = new TicTacToe();
-    $t->randomMove();
+    $board = new TicTacToe();
+    $game_graph = new OrientedGraph(6100);
 
-    /*while ($t->win() == 0){
-        $win_result = $g->bfs($result[$t->id()], function($s) use ($result, $t){
-            $tt = new TicTacToe();
-            $tt->fromId((string)array_search($s, $result));
-            return $tt->win() == $t->nextPlayer();
+    $match_array = movesGraph($board, $game_graph);
+
+    $board->reset();
+    $board->randomMove();
+
+    while(!$board->ended() && $board->win() == 0){
+        $current_goal = $game_graph->bfs($match_array[$board->id()], function($vertice) use ($match_array, $board){
+            $temporary_board = new TicTacToe();
+            $temporary_board->fromId(array_search($vertice, $match_array));
+            return $temporary_board->win() == $board->nextPlayer();
         });
-        $goal = array_search($win_result, $result);
-        $dsp = $g->dijkstraShortestPath($goal);*/
-        /*$path = path($result[$t->id()], $win_result, $dsp[1]);
-        $move = getMove((string)array_search($path[count($path) - 2], $result), (string)array_search($path[count($path) - 1], $result));
-        $t->play($move[0], $move[1]);*/
-    /*}*/
+
+        $goal = array_search($current_goal, $match_array);
+        $shortest_paths = $game_graph->dijkstraShortestPath($match_array[$board->id()]);
+
+        $path = path($match_array[$board->id()], $current_goal, $shortest_paths);
+        $next_id = array_search($path[0], $match_array);
+        $move = getMove($board->id(), $next_id, $match_array);
+        $board->play($move[0], $move[1]);
+    }
+    return $board->win();
 }
 
 /**
  * The main function that start the process.
  */
 function main(){
-    play();
+    $winner = play();
+
+    $message_victoire = "";
+    if ($winner == 0){
+        $message_victoire = "Match nul.";
+    }else if ($winner == 1){
+        $message_victoire = "Croix gagne.";
+    }else if ($winner == 2){
+        $message_victoire = "Cercle gagne.";
+    }
+    print_r($message_victoire);
 }
 main();
 ?>
