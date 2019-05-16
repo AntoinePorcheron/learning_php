@@ -1,4 +1,5 @@
 <?PHP
+
 ini_set("memory_limit", "-1");
 
 // Some global variable to clarify code.
@@ -14,19 +15,17 @@ class TicTacToe{
     /**
      * Create a tic tac toe board.
      */
-    public function __construct($board = array()){
+    public function __construct(){
         $this->board_ = array(array(NONE,NONE,NONE), array(NONE,NONE,NONE), array(NONE,NONE,NONE));
-        if (count($board) > 0){
-            $this->board_ = $board;
-        }
     }
 
     /**
      * Generate all the possible valid combination of a tic tac toe game.
      * Be careful, might remain some case I haven't thought of that are not "invalid", but
      * you'll never see in a real game.
+     * @return array The array of all TicTacToe combinations. 
      */
-    public function generateAll(){
+    public function generateAll(): array{
         $possibility = array(NONE, CROSS, CIRCLE);
 
         $line_combinations = array();
@@ -55,21 +54,19 @@ class TicTacToe{
 
     /**
      * Check if a board is curently valid.
-     * @param array $configuration The board to check. Probably not the best way to do, not quite POO.
      * @return bool True if the board $configuration is valid, false otherwise.
      */
-    public function isValid(){
+    public function isValid(): bool{
         return ($this->count(CROSS) == $this->count(CIRCLE)) || 
                 ($this->count(CROSS) == ($this->count(CIRCLE) + 1));
     }
 
     /**
      * Count the number of $move in the board $configuration.
-     * @param array $configuration
      * @param int $move 
      * @return int the number of $move in $configuration.
      */
-    public function count($move){
+    public function count(int $move): int{
         $count = 0;
         foreach($this->board_ as $line){
             foreach($line as $cell){
@@ -82,18 +79,18 @@ class TicTacToe{
     }
 
     /**
-     * @param array 
-     * @return int
+     * Function that return who have won the game. 
+     * @return int 0 if no one won yet, 1 if cross won, 2 if circle won.
      */
-    public function win(){
+    public function win(): int{
         return max($this->win_line($this->board_), $this->win_column($this->board_), $this->win_diagonal($this->board_));
     }
 
     /**
-     * @param array
-     * @return int
+     * Say if a line have three consecutive cross or circle.
+     * @return int 0 if no one have three consecutive cross or circle, 1 if cross does, 2 otherwise.
      */
-    public function win_line(){
+    public function win_line(): int{
         for ($i = 0; $i < 3; ++$i){
             if (($this->board_[0][$i] == $this->board_[1][$i]) && ($this->board_[1][$i] == $this->board_[2][$i]) && $this->board_[0][$i] > 0){
                 return $this->board_[0][$i];
@@ -103,10 +100,10 @@ class TicTacToe{
     }
 
     /**
-     * @param array
-     * @return int
+     * Tell if a column have three consecutive cross or circle.
+     * @return int 0 if no one have three consecutive cross or circle, 1 if cross does, 2 otherwise.
      */
-    public function win_column(){
+    public function win_column(): int{
         for ($i = 0; $i < 3; ++$i){
             if (($this->board_[$i][0] == $this->board_[$i][1]) && ($this->board_[$i][1] == $this->board_[$i][2]) && $this->board_[$i][0] > 0){
                 return $this->board_[$i][0];
@@ -116,10 +113,10 @@ class TicTacToe{
     }
 
     /**
-     * @param array
-     * @return int
+     * Tell if someone win diagonally.
+     * @return int 0 if no one win, 1 if cross does, 2 otherwise.
      */
-    public function win_diagonal(){
+    public function win_diagonal(): int{
         if (($this->board_[0][0] == $this->board_[1][1]) && ($this->board_[1][1] == $this->board_[2][2]) && $this->board_[0][0] > 0){
             return $this->board_[0][0];
         }
@@ -130,7 +127,12 @@ class TicTacToe{
         return NONE;
     }
 
-    public function id(){
+    /**
+     * Return this TicTacToe board ID. The id represent this particular tic tac toe, 
+     * and a tic tac toe can be load from an ID.
+     * @return string This tic tac toe ID.
+     */
+    public function id(): string{
         $id = "";
         for ($i = 0; $i < 9; ++$i){
             $id .= $this->at($i);
@@ -138,21 +140,42 @@ class TicTacToe{
         return $id;
     }
 
-    private function index($i){
+    /**
+     * Convert a single dimension value to a two dimension values, to access the right cell in the board.
+     * $i must be in the interval [0, 9].
+     * 0 is the first row and first column, 1 is the first row, second column, and so on.
+     * @param int $i The index we want to convert.
+     * @return array The result of the conversion. 
+     */
+    public static function index(int $i): array{
         return [floor($i / 3), $i % 3];
     }
 
-    private function at($i){
+    /**
+     * Return the content of the cell at the index $i.
+     * @param int $i The index, must be between [0, 9].
+     * @return int The content of the cell at the index $i.
+     */
+    private function at(int $i): int{
         $index = $this->index($i);
         return $this->board_[$index[0]][$index[1]];
     }
 
-    private function set($i, $val){
+    /**
+     * Set the cell $i to the value $val.
+     * @param int $i The index we want to update. 
+     * @param int $val The value we want to put at the index $i.
+     */
+    private function set(int $i, int $val): void{
         $index = $this->index($i);
         $this->board_[$index[0]][$index[1]] = $val;
     }
 
-    public function nextIteration(){
+    /**
+     * Generate a set of all the next possible moves the the next player.
+     * @return array The set of all the next possible moves.
+     */
+    public function nextIteration(): array{
         $result = array();
         $nb_empty = $this->count(NONE);
 
@@ -172,46 +195,63 @@ class TicTacToe{
         return $result;
     }
 
-    public function canPlay($i, $j){
+    /**
+     * Function that say wether the cell at [$i, $j] is empty, 
+     * and therefore if this is a valid move.
+     * @param int $i The concerned row.
+     * @param int $j The concerned column.
+     * @return bool True if this is a valid move, false otherwise.
+     */
+    public function canPlay(int $i, int $j): bool{
         return $this->board_[$i][$j] == NONE;
     }
 
-    public function ended(){
+    /**
+     * Check if the board is filled or not.
+     * @return bool True if the board is filled, false otherwise.
+     */
+    public function ended(): bool{
         return $this->count(NONE) == 0;
     }
 
-    public function fromId($id){
+    /**
+     * Load a tic tac toe board from an ID.
+     * @param string $id The tic tac toe ID that we want to load.
+     */
+    public function fromId(string $id): void{
         for ($i = 0; $i < 9; ++$i){
             $this->set($i, (int)$id[$i]);
         }
     }
 
-    public function difference($tictactoe){
-        $self_id = $this->id();
-        $others_id = $tictactoe->id();
-        if ($self_id == $others_id){
-            return [-1,-1];
-        }else{
-            $i = 0;
-            while ($self_id[$i] == $others_id[$i]){
-                ++$i;
-            }
-            return $this->index($i);
-        }
-    }
-
-    public function nextPlayer(){
+    /**
+     * Tell who is the next player.
+     * @return int 1 if cross have to play, 2 if circle have to play.
+     */
+    public function nextPlayer(): int{
         return ($this->count(CROSS) - $this->count(CIRCLE)) == 0 ? CROSS : CIRCLE;
     }
 
-    public function play($i, $j){
+    /**
+     * Set the board at the row $i column $j to nextPlayer().
+     * @param int $i The concerned row.
+     * @param int $j The concerned column.
+     * @return bool True if the move was done, false otherwise.
+     */
+    public function play(int $i, int $j): bool{
+        $played = false;
         if ($this->canPlay($i, $j)){
             $this->board_[$i][$j] = $this->nextPlayer();
+            $played = true;
         }
-        return $this->canPlay($i, $j);
+        return $played;
     }
 
-    public function randomEmpty(){
+    /**
+     * Return an random empty cell.
+     * @return int The index of the random empty cell.
+     */
+    public function randomEmpty(): int{
         $empty_position = array();
         for($i = 0; $i < 9; ++$i){
             if ($this->at($i) == NONE){
@@ -221,32 +261,66 @@ class TicTacToe{
         return $empty_position[rand(0, count($empty_position) - 1)];
     }
 
-    public function randomMove(){
+    /**
+     * Play on a random empty cell.
+     */
+    public function randomMove(): void{
         $index = $this->index($this->randomEmpty());
         $this->play($index[0], $index[1]);
     }
 }
 
+/**
+ * Base class for Graph representation.
+ * Not useful like so, and quite empty. Should clean this up.
+ * Use matrice to represent graphs.
+ */
 class Graph{
-    public function __construct($node){
+    /**
+     * Build a graph.
+     * @param int $node the number of node in the graph.
+     */
+    public function __construct(int $node){
         $this->body_ = array_fill(0, $node, array_fill(0, $node, 0));
     }
 }
 
+/**
+ * Oriented graph class, inherit from graph.
+ */
 class OrientedGraph extends Graph{
-    public function __construct($node){
+    /**
+     * Build an oriented graph.
+     * @param $node The number of node in the graph.
+     */
+    public function __construct(int $node){
         parent::__construct($node);
     }
 
-    public function addEdge($a, $b){
+    /**
+     * Add an edge between $a and $b.
+     * @param int $a the first vertice.
+     * @param int $b the second vertice.
+     */
+    public function addEdge(int $a, int $b){
         $this->body_[$a][$b] = 1;
     }
 
-    public function removeEdge($a, $b){
+    /**
+     * Remove the edge between $a and $b
+     * @param int $a the first vertice.
+     * @param int $b the second vertice.
+     */
+    public function removeEdge(int $a, int $b){
         $this->body_[$a][$b] = 0;
     }
 
-    public function neighbor($a){
+    /**
+     * Get the set neighborhood of $a.
+     * @param int $a a vertice.
+     * @return array The neighboors of $a.
+     */
+    public function neighbor(int $a): array{
         $neighbor = array();
         foreach ($this->body_[$a] as $noeud => $linked){
             if ($linked > 0){
@@ -256,11 +330,22 @@ class OrientedGraph extends Graph{
         return $neighbor;
     }
 
-    public function getEdge($a, $b){
+    /**
+     * Return the edge value between the vertex $a and $b.
+     * @param int First vertice.
+     * @param int Second vertice.
+     * @return int The edge between $a and $b.
+     */
+    public function getEdge(int $a, int $b): int{
         return $this->body_[$a][$b];
     }
 
-    public function dijkstraShortestPath($a){
+    /**
+     * Compute the dijkstra shortest path starting from $a. 
+     * @param int $a The starting vertice.
+     * @return array The path array from $a to any other connected vertex.
+     */
+    public function dijkstraShortestPath(int $a): array{
         $previous = array_fill(0, count($this->body_), -1);
         $distance = array_fill(0, count($this->body_), INF);
         $q = array();
@@ -288,10 +373,17 @@ class OrientedGraph extends Graph{
                 }
             }
         }
-        return array($distance, $previous);
+        return $previous;
     }
 
-    public function bfs($source, $callback){
+    /**
+     * Bread First Search starting from $source, stopping when $callback function return true.
+     * Could loop if $source and result vertex are not linked.
+     * @param int $source The starting point of BFS.
+     * @param callable $callback The validation function.
+     * @return int The result vertex.
+     */
+    public function bfs(int $source, callable $callback): int{
         $discover = array();
         $file = array($source);
         while(count($file) > 0){
@@ -310,7 +402,13 @@ class OrientedGraph extends Graph{
     }
 }
 
-function movesGraph($tictactoe, $g){
+/**
+ * Generate recursively the graph of all moves.
+ * @param TicTacToe The starting tic tac toe board.
+ * @param Graph $g The graph in which we put the edges.
+ * @return array The correspondance array between tic tac toe ID and vertices values. 
+ */
+function movesGraph($tictactoe, $g): array{
     function rec_ttt($g, $c, $t){
         if (!$t->ended()){
             $next = $t->nextIteration();
@@ -329,34 +427,41 @@ function movesGraph($tictactoe, $g){
         }
         return $c;
     }
-    return rec_ttt($g, array(), $tictactoe);
+    return rec_ttt($g, array($tictactoe->id() => 0), $tictactoe);
 }
 
-function win($id, $player){
-    $ttt = new TicTacToe();
-    $ttt.fromId($id);
-    return $ttt->win() == $player;
-}
-
-function path($src, $dest, $dsp_previous){
+/**
+ * Compute the path from $src to $dest, using the result of the dijkstra shortest path.
+ * This function does not check if the path exist, might loop and get stuck here.
+ * @param int $src the source 
+ * @param int $dest the destination
+ * @param array $dsp_previous The dijkstra shortest path result.
+ * @return array The path between $src and $dest.
+ */
+function path(int $src, int $dest, array $dsp_previous): array{
     $result = array();
     $current = $dest;
     while ($current != $src){
         array_push($result, $current);
         $current = $dsp_previous[$current];
     }
-    return $result;
+    return array_reverse($result);
 }
 
-function index($i){
-    return [floor($i/3), $i%3];
+/**
+ * Return where is the difference between current tic tac toe game, and the next tic tac toe game
+ * to know what to play.
+ * @param string The current tic tac toe ID.
+ * @param string The next tic tac toe ID.
+ * @return array The index of where to play next.
+ */
+function getMove(string $id_before, string $id_after): array{
+    return TicTacToe::index(strspn($id_before ^ $id_after, "\0"));
 }
 
-function getMove($id_before, $id_after){
-    print_r($id_before . " " . $id_after . PHP_EOL);
-    return index(strspn($id_before ^ $id_after, "\0"));
-}
-
+/**
+ * Play a tic tac toe game using graphs, dijkstra shortest path and BFS.
+ */
 function play(){
     $tictactoe = new TicTacToe();
     $g = new OrientedGraph(6100);
@@ -364,22 +469,23 @@ function play(){
     $t = new TicTacToe();
     $t->randomMove();
 
-    while ($t->win() == 0){
+    /*while ($t->win() == 0){
         $win_result = $g->bfs($result[$t->id()], function($s) use ($result, $t){
             $tt = new TicTacToe();
             $tt->fromId((string)array_search($s, $result));
             return $tt->win() == $t->nextPlayer();
         });
         $goal = array_search($win_result, $result);
-        $dsp = $g->dijkstraShortestPath($goal);
-        print_r($result[$t->id()] . " " . $t->id() . PHP_EOL);
-        print_r();
+        $dsp = $g->dijkstraShortestPath($goal);*/
         /*$path = path($result[$t->id()], $win_result, $dsp[1]);
         $move = getMove((string)array_search($path[count($path) - 2], $result), (string)array_search($path[count($path) - 1], $result));
         $t->play($move[0], $move[1]);*/
-    }
+    /*}*/
 }
 
+/**
+ * The main function that start the process.
+ */
 function main(){
     play();
 }

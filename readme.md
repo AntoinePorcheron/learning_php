@@ -9,6 +9,6 @@ NON FONCTIONNEL pour le moment.
 
 # Prérequis
 
-* PHP >= 7
+* PHP >= 7.1
 * un IDE de votre choix.
 * De la patience. 
